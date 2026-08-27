@@ -1,0 +1,6 @@
+streamlit
+pandas
+msoffcrypto-tool
+gspread
+google-auth
+openpyxl
