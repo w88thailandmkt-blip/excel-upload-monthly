@@ -56,16 +56,16 @@ if check_password():
                     # อ่านข้อมูล
                     df = pd.read_excel(decrypted_file)
                     
-                    # 📍 ดึงคอลัมน์ตามตำแหน่ง B, G, I (Index คือ 1, 6, 8 ตามลำดับ)
-                    df_filtered = df.iloc[:, [1, 6, 8]].copy()
+                    # 📍 ดึงคอลัมน์ตามตำแหน่ง: B(1), G(6), H(7), I(8)
+                    df_filtered = df.iloc[:, [1, 6, 7, 8]].copy()
                     
-                    # 📍 ตั้งชื่อหัวคอลัมน์ใหม่ให้ข้อมูลที่ดึงมา
-                    df_filtered.columns = ['Affiliate ID', 'No Of Click', 'FTD']
+                    # 📍 ตั้งชื่อหัวคอลัมน์ใหม่ให้ข้อมูลที่ดึงมา (รวม New SignUp D เข้าไป)
+                    df_filtered.columns = ['Affiliate ID', 'No Of Click', 'New SignUp D', 'FTD']
                     
-                    # 📍 แทรกคอลัมน์ 'Month' ที่ได้จาก Dropdown ไว้ด้านหน้าสุด
+                    # 📍 แทรกคอลัมน์ 'Month' ที่ได้จาก Dropdown ไว้ด้านหน้าสุด (คอลัมน์ที่ 0)
                     df_filtered.insert(0, 'Month', selected_month)
 
-                    # เพิ่มข้อมูลผู้และเวลาอัพโหลด
+                    # เพิ่มข้อมูลผู้และเวลาอัพโหลดต่อท้าย
                     df_filtered['Uploader'] = uploader_name
                     df_filtered['Timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
