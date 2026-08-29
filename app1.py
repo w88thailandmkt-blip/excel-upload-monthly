@@ -28,8 +28,13 @@ def check_password():
 st.title("ระบบอัพโหลดข้อมูลอัตโนมัติ (รายเดือน) 🚀")
 
 if check_password():
-    # 1. เพิ่มช่องเลือกวันที่ของข้อมูล (ตารางปฏิทิน)
-    selected_date = st.date_input("🗓️ เลือกวันที่ของข้อมูล (Date of Data)")
+    # 1. เปลี่ยนจากปฏิทินเป็น Dropdown เลือกเดือน
+    month_options = [
+        "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", 
+        "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", 
+        "Sep 2026", "Oct 2026", "Nov 2026", "Dec 2026"
+    ]
+    selected_month = st.selectbox("📅 เลือกเดือนของข้อมูล (Month of Data)", month_options)
 
     # 2. ช่องกรอกชื่อผู้อัพโหลด
     uploader_name = st.text_input("👤 ชื่อผู้อัพโหลด (เช่น: แอดมิน A)")
@@ -54,8 +59,8 @@ if check_password():
                     df_filtered = df[['Date', 'Affiliate ID', 'No Of Click', 'NewSignUp', 'FTD']].copy()
                     df_filtered['Date'] = df_filtered['Date'].astype(str)
                     
-                    # 3. นำวันที่จากปฏิทินที่เลือกมาใส่เป็นคอลัมน์ใหม่ (เปลี่ยนรูปแบบเป็น YYYY-MM-DD)
-                    df_filtered['Date of Data'] = selected_date.strftime("%Y-%m-%d")
+                    # 3. นำเดือนที่เลือกมาใส่เป็นคอลัมน์ใหม่
+                    df_filtered['Month of Data'] = selected_month
                     df_filtered['Uploader'] = uploader_name
                     df_filtered['Timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -64,11 +69,11 @@ if check_password():
                     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
                     client = gspread.authorize(creds)
                     
-                    # 📍 แก้ไข: ใช้ Key หรือ ชื่อไฟล์ให้ถูกต้อง และเลือกแท็บที่ต้องการ
+                    # ระบุ Sheet ปลายทาง
                     sheet = client.open_by_key("1fIU5UJ7AI3k4Csxa_HJ_fj3vP6uiL48E23eOB08CrvU").worksheet("Raw Data M")
                     sheet.append_rows(df_filtered.values.tolist())
                     
-                    st.success(f"อัพเดทข้อมูลของวันที่ {selected_date.strftime('%d/%m/%Y')} สำเร็จ! (โดย: {uploader_name}) 🎉")
+                    st.success(f"อัพเดทข้อมูลประจำเดือน {selected_month} สำเร็จ! (โดย: {uploader_name}) 🎉")
 
                 except Exception as e:
                     st.error(f"เกิดข้อผิดพลาด: {e}")
