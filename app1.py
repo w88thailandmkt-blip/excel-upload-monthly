@@ -28,21 +28,20 @@ def check_password():
 st.title("ระบบอัพโหลดข้อมูลอัตโนมัติ (รายเดือน) 🚀")
 
 if check_password():
-    # 1. เปลี่ยนจากปฏิทินเป็น Dropdown เลือกเดือน
+    # เลือกเดือน
     month_options = [
         "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", 
         "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", 
         "Sep 2026", "Oct 2026", "Nov 2026", "Dec 2026"
     ]
-    selected_month = st.selectbox("📅 เลือกเดือนของข้อมูล (Month of Data)", month_options)
+    selected_month = st.selectbox("📅 เลือกเดือนของข้อมูล (Month)", month_options)
 
-    # 2. ช่องกรอกชื่อผู้อัพโหลด
+    # ช่องกรอกชื่อผู้อัพโหลด
     uploader_name = st.text_input("👤 ชื่อผู้อัพโหลด (เช่น: แอดมิน A)")
     
     uploaded_file = st.file_uploader("เลือกไฟล์ Excel ของคุณ", type=["xlsx"])
 
     if uploaded_file is not None:
-        # บังคับให้ต้องกรอกชื่อก่อน ถึงจะกดอัพโหลดได้
         if not uploader_name:
             st.warning("⚠️ กรุณากรอกชื่อผู้อัพโหลดก่อนกดประมวลผล")
         else:
@@ -56,11 +55,17 @@ if check_password():
 
                     # อ่านข้อมูล
                     df = pd.read_excel(decrypted_file)
-                    df_filtered = df[['Date', 'Affiliate ID', 'No Of Click', 'NewSignUp', 'FTD']].copy()
-                    df_filtered['Date'] = df_filtered['Date'].astype(str)
                     
-                    # 3. นำเดือนที่เลือกมาใส่เป็นคอลัมน์ใหม่
-                    df_filtered['Month of Data'] = selected_month
+                    # 📍 ดึงคอลัมน์ตามตำแหน่ง B, G, I (Index คือ 1, 6, 8 ตามลำดับ)
+                    df_filtered = df.iloc[:, [1, 6, 8]].copy()
+                    
+                    # 📍 ตั้งชื่อหัวคอลัมน์ใหม่ให้ข้อมูลที่ดึงมา
+                    df_filtered.columns = ['Affiliate ID', 'No Of Click', 'FTD']
+                    
+                    # 📍 แทรกคอลัมน์ 'Month' ที่ได้จาก Dropdown ไว้ด้านหน้าสุด
+                    df_filtered.insert(0, 'Month', selected_month)
+
+                    # เพิ่มข้อมูลผู้และเวลาอัพโหลด
                     df_filtered['Uploader'] = uploader_name
                     df_filtered['Timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -69,8 +74,12 @@ if check_password():
                     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
                     client = gspread.authorize(creds)
                     
-                    # ระบุ Sheet ปลายทาง
+                    # ส่งขึ้นชีท Raw Data M
                     sheet = client.open_by_key("1fIU5UJ7AI3k4Csxa_HJ_fj3vP6uiL48E23eOB08CrvU").worksheet("Raw Data M")
+                    
+                    # แทนที่ค่า NaN หรือค่าว่างด้วยช่องว่าง (ป้องกัน Error ตอนส่งขึ้น Google Sheet)
+                    df_filtered.fillna("", inplace=True)
+                    
                     sheet.append_rows(df_filtered.values.tolist())
                     
                     st.success(f"อัพเดทข้อมูลประจำเดือน {selected_month} สำเร็จ! (โดย: {uploader_name}) 🎉")
